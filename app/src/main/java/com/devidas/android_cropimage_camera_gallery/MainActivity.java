@@ -1,5 +1,7 @@
 package com.devidas.android_cropimage_camera_gallery;
+
 import android.Manifest;
+import android.app.Activity;
 import android.content.ActivityNotFoundException;
 import android.content.Intent;
 import android.content.pm.PackageManager;
@@ -7,24 +9,29 @@ import android.graphics.Bitmap;
 import android.net.Uri;
 import android.os.Environment;
 import android.support.v4.app.ActivityCompat;
+import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.DisplayMetrics;
+import android.view.Gravity;
+import android.view.LayoutInflater;
 import android.view.View;
+import android.view.WindowManager;
 import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.Toast;
+
 import java.io.File;
 
 public class MainActivity extends AppCompatActivity {
 
     ImageView imageView;
-    Button buttonCamera, buttonGallery ;
+    Button buttonCamera, buttonGallery;
     File file;
     Uri uri;
-    Intent CamIntent, GalIntent, CropIntent ;
-    public  static final int RequestPermissionCode  = 1 ;
-    DisplayMetrics displayMetrics ;
+    Intent CamIntent, GalIntent, CropIntent;
+    public static final int RequestPermissionCode = 1;
+    DisplayMetrics displayMetrics;
     int width, height;
 
     @Override
@@ -32,9 +39,9 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        imageView = (ImageView)findViewById(R.id.imageview);
-        buttonCamera = (Button)findViewById(R.id.button2);
-        buttonGallery = (Button)findViewById(R.id.button1);
+        imageView = (ImageView) findViewById(R.id.imageview);
+        buttonCamera = (Button) findViewById(R.id.button2);
+        buttonGallery = (Button) findViewById(R.id.button1);
 
         EnableRuntimePermission();
 
@@ -42,7 +49,7 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onClick(View view) {
 
-                ClickImageFromCamera() ;
+                pickerOption();
 
             }
         });
@@ -50,12 +57,60 @@ public class MainActivity extends AppCompatActivity {
         buttonGallery.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
+                pickerOption();
 
-                GetImageFromGallery();
 
             }
         });
 
+    }
+
+    public void pickerOption() {
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        LayoutInflater inflater = (MainActivity.this).getLayoutInflater();
+        View dialogLayout = inflater.inflate(R.layout.alert_picker, null);
+
+        final AlertDialog dialog = builder.create();
+        dialog.getWindow().setSoftInputMode(
+                WindowManager.LayoutParams.SOFT_INPUT_STATE_ALWAYS_HIDDEN);
+        dialog.setView(dialogLayout, 0, 0, 0, 0);
+        dialog.setCanceledOnTouchOutside(true);
+        dialog.setCancelable(true);
+        WindowManager.LayoutParams wlmp = dialog.getWindow()
+                .getAttributes();
+        wlmp.gravity = Gravity.BOTTOM;
+
+
+        Button btnCamera = (Button) dialogLayout.findViewById(R.id.button_Camera);
+        Button btnGallery = (Button) dialogLayout.findViewById(R.id.button_Gallery);
+        Button btnDismiss = (Button) dialogLayout.findViewById(R.id.btnCancelCamera);
+
+        btnCamera.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                ClickImageFromCamera() ;
+            }
+        });
+
+        btnGallery.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+               GetImageFromGallery();
+
+            }
+        });
+
+        btnDismiss.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+              dialog.dismiss();
+            }
+        });
+
+
+        builder.setView(dialogLayout);
+
+        dialog.show();
     }
 
     public void ClickImageFromCamera() {
@@ -63,7 +118,7 @@ public class MainActivity extends AppCompatActivity {
         CamIntent = new Intent(android.provider.MediaStore.ACTION_IMAGE_CAPTURE);
 
         file = new File(Environment.getExternalStorageDirectory(),
-         "file" + String.valueOf(System.currentTimeMillis()) + ".jpg");
+                "file" + String.valueOf(System.currentTimeMillis()) + ".jpg");
         uri = Uri.fromFile(file);
 
         CamIntent.putExtra(android.provider.MediaStore.EXTRA_OUTPUT, uri);
@@ -74,7 +129,7 @@ public class MainActivity extends AppCompatActivity {
 
     }
 
-    public void GetImageFromGallery(){
+    public void GetImageFromGallery() {
 
         GalIntent = new Intent(Intent.ACTION_PICK,
                 android.provider.MediaStore.Images.Media.EXTERNAL_CONTENT_URI);
@@ -89,8 +144,7 @@ public class MainActivity extends AppCompatActivity {
 
             ImageCropFunction();
 
-        }
-        else if (requestCode == 2) {
+        } else if (requestCode == 2) {
 
             if (data != null) {
 
@@ -99,8 +153,7 @@ public class MainActivity extends AppCompatActivity {
                 ImageCropFunction();
 
             }
-        }
-        else if (requestCode == 1) {
+        } else if (requestCode == 1) {
 
             if (data != null) {
 
@@ -136,19 +189,18 @@ public class MainActivity extends AppCompatActivity {
 
         }
     }
-        //Image Crop Code End Here
+    //Image Crop Code End Here
 
-    public void EnableRuntimePermission(){
+    public void EnableRuntimePermission() {
 
         if (ActivityCompat.shouldShowRequestPermissionRationale(MainActivity.this,
-                Manifest.permission.CAMERA))
-        {
+                Manifest.permission.CAMERA)) {
 
-            Toast.makeText(MainActivity.this,"CAMERA permission allows us to Access CAMERA app", Toast.LENGTH_LONG).show();
+            Toast.makeText(MainActivity.this, "CAMERA permission allows us to Access CAMERA app", Toast.LENGTH_LONG).show();
 
         } else {
 
-            ActivityCompat.requestPermissions(MainActivity.this,new String[]{
+            ActivityCompat.requestPermissions(MainActivity.this, new String[]{
                     Manifest.permission.CAMERA}, RequestPermissionCode);
 
         }
@@ -163,11 +215,11 @@ public class MainActivity extends AppCompatActivity {
 
                 if (PResult.length > 0 && PResult[0] == PackageManager.PERMISSION_GRANTED) {
 
-                    Toast.makeText(MainActivity.this,"Permission Granted, Now your application can access CAMERA.", Toast.LENGTH_LONG).show();
+                    Toast.makeText(MainActivity.this, "Permission Granted, Now your application can access CAMERA.", Toast.LENGTH_LONG).show();
 
                 } else {
 
-                    Toast.makeText(MainActivity.this,"Permission Canceled, Now your application cannot access CAMERA.", Toast.LENGTH_LONG).show();
+                    Toast.makeText(MainActivity.this, "Permission Canceled, Now your application cannot access CAMERA.", Toast.LENGTH_LONG).show();
 
                 }
                 break;
